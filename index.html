@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="vendors/bootsrap/bootstrap.min.css">
+
+    <script src="vendors/honeycomb.min.js"></script>
+    <script src="vendors/pixijs/pixi.min.js"></script>
+    <script src="vendors/pixijs/viewport.js"></script>
+    <script src="vendors/simplex-noise.js"></script>
+    <script src="vendors/reimg.js"></script>
+    <script src="vendors/jquery-3.3.1.slim.min.js"></script>
+    <script src="vendors/popper.min.js"></script>
+    <script src="vendors/bootsrap/bootstrap.min.js"></script>
+    <script src="resources/js/source.js"></script>
+
+    <title>Basic Procedural Hexagon Terrain Generator</title>
+    <link href="data:image/x-icon;base64,AAABAAEAEBAAAAAAAABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAX19fAJOTkwAJCQkA+/v7AD09PQC3t7cA/f39ANvb2wBRUVEA5OTkACYmJgA4ODgAy8vLAP///wAWFhYAqampAO/v7wCZmZkAbm5uAL29vQDGxsYA+vr6AAEBAQDz8/MA/Pz8ABMTEwAcHBwAhISEAFlZWQDs7OwA9fX1AAwMDAD+/v4AdHR0AH19fQAnJycAMDAwABcXFwBLS0sAICAgACkpKQCjo6MAGRkZANfX1wDg4OAAKysrAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADg4ODg4OESITHg4ODg4ODg4ODg4EEg8AABoCFg4ODg4ODiEUJQAAAAAAAC4GIQ4ODggJFwAAAAAAAAAAACcsDg4pAAAAAAAAAAAAAAAAKw4OCwAAAAAAAAAAAAAAAA8ODgsAAAAAAAAAAAAAAAAPDg4LAAAAAAAAAAAAAAAADw4OCwAAAAAAAAAAAAAAAA8ODgsAAAAAAAAAAAAAAAAPDg4LAAAAAAAAAAAAAAAADw4OJAAAAAAAAAAAAAAAACYODg0FAAAAAAAAAAAAAAwVDg4OBxAoAAAAAAAAGyoZDg4ODg4OHxwgAAADIxgODg4ODg4ODg4OCgEdLQ4ODg4ODgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" rel="icon" type="image/x-icon" />
+</head>
+<body>
+    <div class="container">
+        <div class="m-1">
+            <button type="button" class="btn btn-primary m-1" data-toggle="modal" data-target="#gridSettingsModal">
+                Grid
+            </button>
+            <button type="button" class="btn btn-primary m-1" data-toggle="modal" data-target="#elevationModal">
+                Elevation
+            </button>
+            <button type="button" class="btn btn-primary m-1" data-toggle="modal" data-target="#moistureModal">
+                Moisture
+            </button>
+            <button type="button" class="btn btn-primary m-1" onclick="downloadCanvasAsPng()">
+                Download as PNG
+            </button>
+            <button type="button" class="btn btn-primary m-1" data-toggle="modal" data-target="#mapHashModal">
+                Map Hash
+            </button>
+            <button type="button" class="btn btn-success m-1 float-right" id="reset">
+                Reset
+            </button>
+            <button type="button" class="btn btn-success m-1 float-right" id="redraw">
+                Redraw
+            </button>
+        </div>
+    </div>
+
+    <div class="container" id="grid">
+        <canvas id="canvas" class="border border-dark"></canvas>
+    </div>
+
+    <!-- Grid Settings Modal -->
+    <div class="modal fade" id="gridSettingsModal" tabindex="-1" role="dialog" aria-labelledby="gridSettingsTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="gridSettingsTitle">Grid Settings</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="gridSettingsForm" name="gridSettingsForm" role="form">
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="hexColums">Columns</label>
+                                <input type="number" class="form-control" id="hexColums" name="hexColums">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="hexRows">Rows</label>
+                                <input type="number" class="form-control" id="hexRows" name="hexRows">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <input class="form-group" type="checkbox" id="hideCoords" name="hideCoords">
+                                <label for="hideCoords">
+                                    Hide Coordinates
+                                </label>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <input class="form-group" type="checkbox" id="hideGrid" name="hideGrid">
+                                <label for="hideGrid">
+                                    Hide Grid
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label class="col-md-12 font-weight-bold">Contour Interval</label>
+                            <div class="form-group col-md-3">
+                                <label for="contourInterval_0">Deep Water</label>
+                                <input type="number" class="form-control form-control-sm" id="contourInterval_0" name="contourInterval_0" step="0.01" min="0" max="1">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="contourInterval_1">Shallow Water</label>
+                                <input type="number" class="form-control form-control-sm" id="contourInterval_1" name="contourInterval_1" step="0.01" min="0" max="1">
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label for="contourInterval_2">Flat</label>
+                                <input type="number" class="form-control form-control-sm" id="contourInterval_2" name="contourInterval_2" step="0.01" min="0" max="1">
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label for="contourInterval_3">Hill</label>
+                                <input type="number" class="form-control form-control-sm" id="contourInterval_3" name="contourInterval_3" step="0.01" min="0" max="1">
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label for="contourInterval_4">Mountain</label>
+                                <input type="number" class="form-control form-control-sm" id="contourInterval_4" name="contourInterval_4" step="0.01" min="0" max="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Apply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Elevation Noise Modal -->
+    <div class="modal fade" id="elevationModal" tabindex="-1" role="dialog" aria-labelledby="elevationNoiseSettings" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="elevationNoiseSettings">Elevation Noise Settings</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="elevationNoiseSettingsForm" name="elevationNoiseSettingsForm" role="form">
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <label for="elevationSeed">Elevation Seed</label>
+                                <input type="text" class="form-control" id="elevationSeed" name="elevationSeed" >
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <input class="form-group" type="checkbox" id="setElevationSeed" name="setElevationSeed">
+                                <label for="setElevationSeed">
+                                    Set Elevation Seed
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="frequencyElevation">Frequency</label>
+                                <input type="number" class="form-control" id="frequencyElevation" name="frequencyElevation" step="0.1">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="redistributionElevation">Redistribution</label>
+                                <input type="number" class="form-control" id="redistributionElevation" name="redistributionElevation" step="0.1">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label class="col-md-12 font-weight-bold">Elevation Octaves</label>
+                            <div class="form-group col-md-3">
+                                <label for="elevationOctaves_0">e0</label>
+                                <input type="number" class="form-control form-control-sm" id="elevationOctaves_0" name="elevationOctaves_0" step="0.01" min="0" max="1">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="elevationOctaves_1">e1</label>
+                                <input type="number" class="form-control form-control-sm" id="elevationOctaves_1" name="elevationOctaves_1" step="0.01" min="0" max="1">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="elevationOctaves_2">e2</label>
+                                <input type="number" class="form-control form-control-sm" id="elevationOctaves_2" name="elevationOctaves_2" step="0.01" min="0" max="1">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="elevationOctaves_3">e3</label>
+                                <input type="number" class="form-control form-control-sm" id="elevationOctaves_3" name="elevationOctaves_3" step="0.01" min="0" max="1">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <input class="form-group" type="checkbox" id="createIsland" name="createIsland">
+                                <label for="createIsland">
+                                    Island
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Apply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Moisture Noise Modal -->
+    <div class="modal fade" id="moistureModal" tabindex="-1" role="dialog" aria-labelledby="moistureNoiseSettings" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="moistureNoiseSettings">Moisture Noise Settings</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="moistureNoiseSettingsForm" name="moistureNoiseSettingsForm" role="form">
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <label for="moistureSeed">Moisture Seed</label>
+                                <input type="text" class="form-control" id="moistureSeed" name="moistureSeed">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <input class="form-group" type="checkbox" id="setMoistureSeed" name="setMoistureSeed">
+                                <label for="setMoistureSeed">
+                                    Set Moisture Seed
+                                </label>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <input class="form-group" type="checkbox" id="drawMoisture" name="drawMoisture">
+                                <label for="drawMoisture">
+                                    Draw Moisture
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="frequencyMoisture">Frequency</label>
+                                <input type="number" class="form-control" id="frequencyMoisture" name="frequencyMoisture" step="0.1">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="redistributionMoisture">Redistribution</label>
+                                <input type="number" class="form-control" id="redistributionMoisture" name="redistributionMoisture" step="0.1">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label class="col-md-12 font-weight-bold">Moisture Octaves</label>
+                            <div class="form-group col-md-3">
+                                <label for="moistureOctaves_0">h0</label>
+                                <input type="number" class="form-control form-control-sm" id="moistureOctaves_0" name="moistureOctaves_0" step="0.01" min="0" max="1">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="moistureOctaves_1">h1</label>
+                                <input type="number" class="form-control form-control-sm" id="moistureOctaves_1" name="moistureOctaves_1" step="0.01" min="0" max="1">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="moistureOctaves_2">h2</label>
+                                <input type="number" class="form-control form-control-sm" id="moistureOctaves_2" name="moistureOctaves_2" step="0.01" min="0" max="1">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="moistureOctaves_3">h3</label>
+                                <input type="number" class="form-control form-control-sm" id="moistureOctaves_3" name="moistureOctaves_3" step="0.01" min="0" max="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Apply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Map Hash -->
+    <div class="modal fade" id="mapHashModal" tabindex="-1" role="dialog" aria-labelledby="mapHash" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mapHashTitle">Map Hash</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="mapHashForm" name="mapHashForm" role="form">
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <label for="mapHash">Map Hash</label>
+                                <textarea class="form-control" id="mapHash" name="mapHash" rows="10"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <input class="form-group" type="checkbox" id="setMapHash" name="setMapHash">
+                                <label for="setMapHash">
+                                    Set Map Hash
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Apply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="hexInfoModal" tabindex="-1" role="dialog" aria-labelledby="hexInfoModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="hexInfoModalTitle">Hexagon Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="hexInfoForm" name="hexInfoForm" role="form">
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-3">
+                                <label for="hColumn">Column</label>
+                                <input type="text" class="form-control" id="hColumn" name="hColumn" readonly>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="hRow">Row</label>
+                                <input type="text" class="form-control" id="hRow" name="hRow" readonly>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="xCoord">X</label>
+                                <input type="text" class="form-control" id="xCoord" name="xCoord" readonly>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="yCoord">Y</label>
+                                <input type="text" class="form-control" id="yCoord" name="yCoord" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-2">
+                                <label for="hElevation">E</label>
+                                <input type="text" class="form-control" id="hElevation" name="hElevation" readonly>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="hTerrain">Terrain</label>
+                                <input type="text" class="form-control" id="hTerrain" name="hTerrain" readonly>
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label for="hMoisture">M</label>
+                                <input type="text" class="form-control" id="hMoisture" name="hMoisture" readonly>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="hBiome">Biome</label>
+                                <input type="text" class="form-control" id="hBiome" name="hBiome" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div id="terrainColorRow" class="form-group col-md-6">
+                                <label id="terrainColor"></label>
+                            </div>
+                            <div id="biomeColorRow" class="form-group col-md-6">
+                                <label id="biomeColor"></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
