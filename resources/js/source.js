@@ -87,7 +87,7 @@ function getDefaultSettings() {
     let width = ( window.innerWidth - 100 > 1140 ) ? 1140 : window.innerWidth - 100;
     let height = window.innerHeight - 100;
     let colums = ( Math.ceil( width / 24 ) > 47) ? 47 : Math.ceil( width / 24 );
-    let rows = ( Math.ceil( height / ( 16 * 1.731 ) ) > 20) ? 20 : Math.ceil( height / ( 16 * 1.731 ) );
+    let rows = ( Math.ceil( height / ( 16 * 1.73205 ) ) > 20) ? 20 : Math.ceil( height / ( 16 * 1.73205 ) );
 
     return {
         screenW: width,
@@ -167,9 +167,9 @@ function updateSettingsModal(settings) {
 function initializeViewport(app, settings) {
 
     let worldWidth = settings.hexColums * (settings.hexSize + (settings.hexSize / 2)) + (settings.hexSize / 2);
-    let worldHeight = settings.hexRows * (settings.hexSize * 1.731) + (settings.hexSize * 1.731 / 2);
+    let worldHeight = settings.hexRows * (settings.hexSize * 1.73205) + (settings.hexSize * 1.73205 / 2);
     if (settings.hexOrientation === 'pointy') {
-        worldWidth = settings.hexColums * (settings.hexSize * 1.731) + (settings.hexSize * 1.731 / 2);
+        worldWidth = settings.hexColums * (settings.hexSize * 1.73205) + (settings.hexSize * 1.73205 / 2);
         worldHeight = settings.hexRows * (settings.hexSize + (settings.hexSize / 2)) + (settings.hexSize / 2);
     }
 
@@ -203,6 +203,17 @@ function loadGrid(app, viewport, settings) {
     let biomeTileset = {
         "DeepWater": {x: 4, y:5},
         "ShallowWater": {x: 0, y:5},
+        "FlatDesert":{x: 1, y:1},
+        "FlatGrass":{x: 2, y:0},
+        "FlatForest":{x: 5, y:0},
+        "HillDesert":{x: 8, y:0},
+        "HillGrass":{x: 7, y:0},
+        "HillForest":{x: 6, y:0},
+        "HillForestNeedleleaf":{x: 10, y:0},
+        "MountainDesert":{x: 10, y:6},
+        "MountainShrubland":{x: 3, y:3},
+        "MountainAlpine":{x: 10, y:3},
+        "MountainImpassable":{x: 0, y:6},
     };
 
     // render hex grid
@@ -223,26 +234,55 @@ function loadGrid(app, viewport, settings) {
         }
         else if (hex.elevation < settings.contourInterval_2) {
             hex.archetype = "Flat";
-            if (hex.moisture < 0.16) hex.biome = "Desert";
-            else if (hex.moisture < 0.6) hex.biome = "Grass";
-            else hex.biome = "Forest";
+            if (hex.moisture < 0.16) {
+                hex.biome = "Desert";
+                hex.tile = "FlatDesert";
+            } else if (hex.moisture < 0.6) {
+                hex.biome = "Grass";
+                hex.tile = "FlatGrass";
+            } else {
+                hex.biome = "Forest";
+                hex.tile = "FlatForest";
+            }
         }
         else if (hex.elevation < settings.contourInterval_3) {
             hex.archetype = "Hill";
-            if (hex.moisture < 0.16) hex.biome = "Desert";
-            else if (hex.moisture < 0.50) hex.biome = "Grass";
-            else if (hex.moisture < 0.80) hex.biome = "Mixed Forest";
-            else hex.biome = "Needleleaf Forest";
+            if (hex.moisture < 0.16) {
+                hex.biome = "Desert";
+                hex.tile = "HillDesert";
+            }
+            else if (hex.moisture < 0.50) {
+                hex.biome = "Grass";
+                hex.tile = "HillGrass";
+            }
+            else if (hex.moisture < 0.80) {
+                hex.biome = "Mixed Forest";
+                hex.tile = "HillForest";
+            }
+            else {
+                hex.biome = "Needleleaf Forest";
+                hex.tile = "HillForestNeedleleaf";
+            }
         }
         else if (hex.elevation < settings.contourInterval_4) {
             hex.archetype = "Mountain";
-            if (hex.moisture < 0.33) hex.biome = "Desert";
-            else if (hex.moisture < 0.66) hex.biome = "Shrubland";
-            else hex.biome = "Alpine forest";
+            if (hex.moisture < 0.33) {
+                hex.biome = "Desert";
+                hex.tile = "MountainDesert";
+            }
+            else if (hex.moisture < 0.66) {
+                hex.biome = "Shrubland";
+                hex.tile = "MountainShrubland";
+            }
+            else {
+                hex.biome = "Alpine forest";
+                hex.tile = "MountainAlpine";
+            }
         }
         else {
             hex.archetype = "Mountain impassable";
             hex.biome = "Snow";
+            hex.tile = "MountainImpassable";
         }
     });
 
