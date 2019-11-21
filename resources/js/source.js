@@ -200,6 +200,11 @@ function loadGrid(app, viewport, settings) {
     let elevation = heightMap(settings);
     let moisture = moistureMap(settings);
 
+    let biomeTileset = {
+        "DeepWater": {x: 4, y:5},
+        "ShallowWater": {x: 0, y:5},
+    };
+
     // render hex grid
     let gr = Grid.rectangle({ width: settings.hexColums, height: settings.hexRows });
     gr.forEach(hex => {
@@ -209,10 +214,12 @@ function loadGrid(app, viewport, settings) {
         if (hex.elevation < settings.contourInterval_0) {
             hex.archetype = "Deep Water";
             hex.biome = "Water";
+            hex.tile = "DeepWater";
         }
         else if (hex.elevation < settings.contourInterval_1) {
             hex.archetype = "Shallow Water";
             hex.biome = "Water";
+            hex.tile = "ShallowWater";
         }
         else if (hex.elevation < settings.contourInterval_2) {
             hex.archetype = "Flat";
@@ -242,10 +249,14 @@ function loadGrid(app, viewport, settings) {
     for (let y = 0; y < settings.hexRows; y++) {
         for (let x = 0; x < settings.hexColums; x++) {
             if (x%2 === 0) {
+                let hex = gr.get([x,y]);
+                let tileCoords = biomeTileset[hex.tile];
+                if (!tileCoords) continue;
                 let texture = PIXI.utils.TextureCache['resources/img/tileset.png'];
-                texture.frame = new PIXI.Rectangle(0, 0, 32, 48);
+                texture.frame = new PIXI.Rectangle(tileCoords.x*32, tileCoords.y*48, 32, 48);
                 texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-                let fantasyHexTile = new PIXI.Sprite(texture);
+                //let fantasyHexTile = new PIXI.Sprite(texture);
+                let fantasyHexTile = new PIXI.Sprite(new PIXI.Texture(texture.baseTexture, texture.frame));
                 fantasyHexTile.x = x * 24;
                 fantasyHexTile.y = -18 + (y * 28);
                 viewport.addChild(fantasyHexTile);
@@ -253,10 +264,14 @@ function loadGrid(app, viewport, settings) {
         }
         for (let x = 0; x < settings.hexColums; x++) {
             if (x%2 === 1) {
+                let hex = gr.get([x,y]);
+                let tileCoords = biomeTileset[hex.tile];
+                if (!tileCoords) continue;
                 let texture = PIXI.utils.TextureCache['resources/img/tileset.png'];
-                texture.frame = new PIXI.Rectangle(0, 0, 32, 48);
+                texture.frame = new PIXI.Rectangle(tileCoords.x*32, tileCoords.y*48, 32, 48);
                 texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-                let fantasyHexTile = new PIXI.Sprite(texture);
+                //let fantasyHexTile = new PIXI.Sprite(texture);
+                let fantasyHexTile = new PIXI.Sprite(new PIXI.Texture(texture.baseTexture, texture.frame));
                 fantasyHexTile.x = x * 24;
                 fantasyHexTile.y = -4 + (y * 28);
                 viewport.addChild(fantasyHexTile);
