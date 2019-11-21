@@ -201,19 +201,30 @@ function loadGrid(app, viewport, settings) {
     let moisture = moistureMap(settings);
 
     let biomeTileset = {
-        "DeepWater": {x: 4, y:5},
-        "ShallowWater": {x: 0, y:5},
-        "FlatDesert":{x: 1, y:1},
-        "FlatGrass":{x: 2, y:0},
-        "FlatForest":{x: 5, y:0},
-        "HillDesert":{x: 8, y:0},
-        "HillGrass":{x: 7, y:0},
-        "HillForest":{x: 6, y:0},
-        "HillForestNeedleleaf":{x: 10, y:0},
-        "MountainDesert":{x: 10, y:6},
-        "MountainShrubland":{x: 3, y:3},
-        "MountainAlpine":{x: 10, y:3},
-        "MountainImpassable":{x: 0, y:6},
+        "DeepWater": {x:4, y:5},
+        "ShallowWater": {x:0, y:5},
+        "FlatDesert1": {x:1, y:2},
+        "FlatDesert2": {x:1, y:1},
+        "FlatGrass": {x:2, y:0},
+        "FlatSparseTrees1": {x:3, y:0},
+        "FlatSparseTrees2": {x:4, y:0},
+        "FlatForest": {x:5, y:0},
+        "HillDesert": {x:9, y:2},
+        "HillGrass": {x:7, y:0},
+        "HillForest": {x:6, y:0},
+        "HillForestNeedleleaf": {x:10, y:0},
+        "MountainDesert": {x:8, y:2},
+        "MountainShrubland1": {x:8, y:0},
+        "MountainShrubland2": {x:9, y:0},
+        "MountainAlpine1": {x:10, y:0},
+        "MountainAlpine2": {x:11, y:0},
+        "MountainImpassable1": {x:10, y:6},
+        "MountainImpassable2": {x:0, y:6},
+        "lake1": {x:12, y:0},
+        "lake2": {x:3, y:1},
+        "lake3": {x:2, y:1},
+        "lake4": {x:8, y:1},
+        "Volcano": {x:3, y:6},
     };
 
     // render hex grid
@@ -234,12 +245,18 @@ function loadGrid(app, viewport, settings) {
         }
         else if (hex.elevation < settings.contourInterval_2) {
             hex.archetype = "Flat";
-            if (hex.moisture < 0.16) {
+            if (hex.moisture < 0.10) {
                 hex.biome = "Desert";
-                hex.tile = "FlatDesert";
-            } else if (hex.moisture < 0.6) {
+                hex.tile = "FlatDesert1";
+            } else if (hex.moisture < 0.25) {
+                hex.biome = "Desert";
+                hex.tile = "FlatDesert2";
+            } else if (hex.moisture < 0.40) {
                 hex.biome = "Grass";
                 hex.tile = "FlatGrass";
+            } else if (hex.moisture < 0.65) {
+                hex.biome = "Grass";
+                hex.tile = (Math.floor(Math.random() * 10) + 1) === 1 ? "FlatSparseTrees2": "FlatSparseTrees1";
             } else {
                 hex.biome = "Forest";
                 hex.tile = "FlatForest";
@@ -247,43 +264,69 @@ function loadGrid(app, viewport, settings) {
         }
         else if (hex.elevation < settings.contourInterval_3) {
             hex.archetype = "Hill";
-            if (hex.moisture < 0.16) {
+            if (hex.moisture < 0.10) {
                 hex.biome = "Desert";
                 hex.tile = "HillDesert";
             }
-            else if (hex.moisture < 0.50) {
+            else if (hex.moisture < 0.45) {
                 hex.biome = "Grass";
                 hex.tile = "HillGrass";
             }
-            else if (hex.moisture < 0.80) {
+            else {
                 hex.biome = "Mixed Forest";
                 hex.tile = "HillForest";
-            }
-            else {
-                hex.biome = "Needleleaf Forest";
-                hex.tile = "HillForestNeedleleaf";
             }
         }
         else if (hex.elevation < settings.contourInterval_4) {
             hex.archetype = "Mountain";
-            if (hex.moisture < 0.33) {
+            if (hex.moisture < 0.10) {
                 hex.biome = "Desert";
                 hex.tile = "MountainDesert";
             }
-            else if (hex.moisture < 0.66) {
+            else if (hex.moisture < 0.30) {
                 hex.biome = "Shrubland";
-                hex.tile = "MountainShrubland";
+                hex.tile = (Math.floor(Math.random() * 2) + 1) === 2 ? "MountainShrubland2": "MountainShrubland1";
+            }
+            else if (hex.moisture < 0.80) {
+                hex.biome = "Alpine forest";
+                hex.tile = (Math.floor(Math.random() * 2) + 1) === 2 ? "MountainAlpine2": "MountainAlpine1";
             }
             else {
-                hex.biome = "Alpine forest";
-                hex.tile = "MountainAlpine";
+                hex.biome = "Shrubland";
+                hex.tile = (Math.floor(Math.random() * 2) + 1) === 2 ? "MountainShrubland2": "MountainShrubland1";
             }
         }
         else {
             hex.archetype = "Mountain impassable";
             hex.biome = "Snow";
-            hex.tile = "MountainImpassable";
+            if (hex.moisture < 0.40) {
+                hex.tile = (Math.floor(Math.random() * 50) + 1) === 10 ? "Volcano": "MountainImpassable1";
+            } else {
+                hex.tile = "MountainImpassable2";
+            }
         }
+    });
+
+    gr.forEach(hex => {
+        if (hex.tile === "ShallowWater") {
+            let hexesInRange = gr.neighborsOf(hex);
+            let terrainSorrounded = true;
+            let counter = 0;
+            for (let i = 0; i < hexesInRange.length; i++) {
+                let hexToCheck = hexesInRange[i];
+                if (hexToCheck === undefined || hexToCheck.tile === 'DeepWater') {
+                    terrainSorrounded = false;
+                    break;
+                } else if (hexToCheck !== undefined && hexToCheck.tile === 'ShallowWater') {
+                    counter++;
+                }
+            }
+            if (terrainSorrounded && counter < 2 ) {
+                if (counter === 0) hex.tile = (Math.floor(Math.random() * 2) + 1) === 2 ? "lake2": "lake1";
+                else if (counter === 1) hex.tile = (Math.floor(Math.random() * 2) + 1) === 2 ? "lake4": "lake3";
+            }
+        }
+
     });
 
     for (let y = 0; y < settings.hexRows; y++) {
