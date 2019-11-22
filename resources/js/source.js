@@ -1,7 +1,7 @@
 "use strict";
 window.onload = function() {
     let loader = new PIXI.Loader();
-    loader.add('resources/img/tileset.png')
+    loader.add('resources/img/tileset-borderless.png')
         .load(drawMap);
 };
 
@@ -335,7 +335,7 @@ function loadGrid(app, viewport, settings) {
                 let hex = gr.get([x,y]);
                 let tileCoords = biomeTileset[hex.tile];
                 if (!tileCoords) continue;
-                let texture = PIXI.utils.TextureCache['resources/img/tileset.png'];
+                let texture = PIXI.utils.TextureCache['resources/img/tileset-borderless.png'];
                 texture.frame = new PIXI.Rectangle(tileCoords.x*32, tileCoords.y*48, 32, 48);
                 texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
                 //let fantasyHexTile = new PIXI.Sprite(texture);
@@ -350,7 +350,7 @@ function loadGrid(app, viewport, settings) {
                 let hex = gr.get([x,y]);
                 let tileCoords = biomeTileset[hex.tile];
                 if (!tileCoords) continue;
-                let texture = PIXI.utils.TextureCache['resources/img/tileset.png'];
+                let texture = PIXI.utils.TextureCache['resources/img/tileset-borderless.png'];
                 texture.frame = new PIXI.Rectangle(tileCoords.x*32, tileCoords.y*48, 32, 48);
                 texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
                 //let fantasyHexTile = new PIXI.Sprite(texture);
