@@ -1,7 +1,8 @@
 "use strict";
 window.onload = function() {
     let loader = new PIXI.Loader();
-    loader.add('resources/img/tileset-borderless.png')
+    loader.add('resources/img/tileset.png')
+        .add('resources/img/tileset-borderless.png')
         .load(drawMap);
 };
 
@@ -209,6 +210,7 @@ function loadGrid(app, viewport, settings) {
         "FlatSparseTrees1": {x:3, y:0},
         "FlatSparseTrees2": {x:4, y:0},
         "FlatForest": {x:5, y:0},
+        "FlatForestSwampy": {x:7, y:1},
         "HillDesert": {x:9, y:2},
         "HillGrass": {x:7, y:0},
         "HillForest": {x:6, y:0},
@@ -225,6 +227,9 @@ function loadGrid(app, viewport, settings) {
         "lake3": {x:2, y:1},
         "lake4": {x:8, y:1},
         "Volcano": {x:3, y:6},
+        "lair": {x:0, y:8},
+        "lairSnow": {x:1, y:8},
+        "lairDesert": {x:2, y:8},
     };
 
     // render hex grid
@@ -257,9 +262,12 @@ function loadGrid(app, viewport, settings) {
             } else if (hex.moisture < 0.65) {
                 hex.biome = "Grass";
                 hex.tile = (Math.floor(Math.random() * 10) + 1) === 1 ? "FlatSparseTrees2": "FlatSparseTrees1";
-            } else {
+            } else if (hex.moisture < 0.95){
                 hex.biome = "Forest";
                 hex.tile = "FlatForest";
+            } else {
+                hex.biome = "Forest";
+                hex.tile = "FlatForestSwampy";
             }
         }
         else if (hex.elevation < settings.contourInterval_3) {
@@ -273,7 +281,7 @@ function loadGrid(app, viewport, settings) {
                 hex.tile = "HillGrass";
             }
             else {
-                hex.biome = "Mixed Forest";
+                hex.biome = "Forest";
                 hex.tile = "HillForest";
             }
         }
@@ -329,20 +337,39 @@ function loadGrid(app, viewport, settings) {
 
     });
 
+    let texture = PIXI.utils.TextureCache['resources/img/tileset.png'];
+    if (settings.hideGrid) texture = PIXI.utils.TextureCache['resources/img/tileset-borderless.png'];
+    texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+
     for (let y = 0; y < settings.hexRows; y++) {
         for (let x = 0; x < settings.hexColums; x++) {
             if (x%2 === 0) {
                 let hex = gr.get([x,y]);
                 let tileCoords = biomeTileset[hex.tile];
                 if (!tileCoords) continue;
-                let texture = PIXI.utils.TextureCache['resources/img/tileset-borderless.png'];
+
                 texture.frame = new PIXI.Rectangle(tileCoords.x*32, tileCoords.y*48, 32, 48);
-                texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-                //let fantasyHexTile = new PIXI.Sprite(texture);
                 let fantasyHexTile = new PIXI.Sprite(new PIXI.Texture(texture.baseTexture, texture.frame));
                 fantasyHexTile.x = x * 24;
                 fantasyHexTile.y = -18 + (y * 28);
                 viewport.addChild(fantasyHexTile);
+
+                // Lair
+                if (hex.biome !== 'water' && (hex.biome === 'Forest' || hex.archetype === 'hill' || hex.biome === 'Snow' || hex.archetype === "Mountain")) {
+                    if ((Math.floor(Math.random() * 45) + 1) === 10) {
+                        let lairTile = "lair";
+                        if (hex.biome === 'Desert') lairTile = "lairDesert";
+                        if (hex.tile === 'MountainImpassable2') lairTile = "lairSnow";
+                        tileCoords = biomeTileset[lairTile];
+                        if (!tileCoords) continue;
+                        texture.frame = new PIXI.Rectangle(tileCoords.x*32, tileCoords.y*48, 32, 48);
+                        let lairHexTile = new PIXI.Sprite(new PIXI.Texture(texture.baseTexture, texture.frame));
+                        lairHexTile.x = x * 24;
+                        lairHexTile.y = -18 + (y * 28);
+                        viewport.addChild(lairHexTile);
+                    }
+                }
+
             }
         }
         for (let x = 0; x < settings.hexColums; x++) {
@@ -350,14 +377,27 @@ function loadGrid(app, viewport, settings) {
                 let hex = gr.get([x,y]);
                 let tileCoords = biomeTileset[hex.tile];
                 if (!tileCoords) continue;
-                let texture = PIXI.utils.TextureCache['resources/img/tileset-borderless.png'];
                 texture.frame = new PIXI.Rectangle(tileCoords.x*32, tileCoords.y*48, 32, 48);
-                texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-                //let fantasyHexTile = new PIXI.Sprite(texture);
                 let fantasyHexTile = new PIXI.Sprite(new PIXI.Texture(texture.baseTexture, texture.frame));
                 fantasyHexTile.x = x * 24;
                 fantasyHexTile.y = -4 + (y * 28);
                 viewport.addChild(fantasyHexTile);
+
+                // Lair
+                if (hex.biome !== 'water' && (hex.biome === 'Forest' || hex.biome === 'Snow' || hex.archetype === "Mountain")) {
+                    if ((Math.floor(Math.random() * 45) + 1) === 10) {
+                        let lairTile = "lair";
+                        if (hex.biome === 'Desert') lairTile = "lairDesert";
+                        if (hex.tile === 'MountainImpassable2') lairTile = "lairSnow";
+                        tileCoords = biomeTileset[lairTile];
+                        if (!tileCoords) continue;
+                        texture.frame = new PIXI.Rectangle(tileCoords.x*32, tileCoords.y*48, 32, 48);
+                        let lairHexTile = new PIXI.Sprite(new PIXI.Texture(texture.baseTexture, texture.frame));
+                        lairHexTile.x = x * 24;
+                        lairHexTile.y = -4 + (y * 28);
+                        viewport.addChild(lairHexTile);
+                    }
+                }
             }
         }
     }
