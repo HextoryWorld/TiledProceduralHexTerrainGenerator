@@ -3,6 +3,7 @@ window.onload = function() {
     let loader = new PIXI.Loader();
     loader.add('resources/img/tileset.png')
         .add('resources/img/tileset-borderless.png')
+        .add('resources/img/roads_rivers-tileset.png')
         .load(drawMap);
 };
 
@@ -232,6 +233,17 @@ function loadGrid(app, viewport, settings) {
         "lairDesert": {x:2, y:8},
     };
 
+
+    let riverTileset = {
+        "SOURCE": {x:0, y:2},
+        "SWNE": {x:1, y:2},
+        "NWSE": {x:2, y:2},
+        "SWNW": {x:3, y:2},
+        "SENE": {x:5, y:2},
+        "SWSE": {x:6, y:2},
+        "NWNE": {x:7, y:2},
+    };
+
     // render hex grid
     let gr = Grid.rectangle({ width: settings.hexColums, height: settings.hexRows });
     gr.forEach(hex => {
@@ -357,10 +369,10 @@ function loadGrid(app, viewport, settings) {
                 // Lair
                 if (hex.biome !== 'water' && (hex.biome === 'Forest' || hex.archetype === 'hill' || hex.biome === 'Snow' || hex.archetype === "Mountain")) {
                     if ((Math.floor(Math.random() * 45) + 1) === 10) {
-                        let lairTile = "lair";
-                        if (hex.biome === 'Desert') lairTile = "lairDesert";
-                        if (hex.tile === 'MountainImpassable2') lairTile = "lairSnow";
-                        tileCoords = biomeTileset[lairTile];
+                        hex.lair = "lair";
+                        if (hex.biome === 'Desert') hex.lair = "lairDesert";
+                        if (hex.tile === 'MountainImpassable2') hex.lair = "lairSnow";
+                        tileCoords = biomeTileset[hex.lair];
                         if (!tileCoords) continue;
                         texture.frame = new PIXI.Rectangle(tileCoords.x*32, tileCoords.y*48, 32, 48);
                         let lairHexTile = new PIXI.Sprite(new PIXI.Texture(texture.baseTexture, texture.frame));
@@ -386,10 +398,10 @@ function loadGrid(app, viewport, settings) {
                 // Lair
                 if (hex.biome !== 'water' && (hex.biome === 'Forest' || hex.biome === 'Snow' || hex.archetype === "Mountain")) {
                     if ((Math.floor(Math.random() * 45) + 1) === 10) {
-                        let lairTile = "lair";
-                        if (hex.biome === 'Desert') lairTile = "lairDesert";
-                        if (hex.tile === 'MountainImpassable2') lairTile = "lairSnow";
-                        tileCoords = biomeTileset[lairTile];
+                        hex.lair = "lair";
+                        if (hex.biome === 'Desert') hex.lair = "lairDesert";
+                        if (hex.tile === 'MountainImpassable2') hex.lair = "lairSnow";
+                        tileCoords = biomeTileset[hex.lair];
                         if (!tileCoords) continue;
                         texture.frame = new PIXI.Rectangle(tileCoords.x*32, tileCoords.y*48, 32, 48);
                         let lairHexTile = new PIXI.Sprite(new PIXI.Texture(texture.baseTexture, texture.frame));
@@ -401,6 +413,59 @@ function loadGrid(app, viewport, settings) {
             }
         }
     }
+
+    let textureRivers = PIXI.utils.TextureCache['resources/img/roads_rivers-tileset.png'];
+    textureRivers.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+
+    // River sources
+    for (let y = 0; y < settings.hexRows; y++) {
+        for (let x = 0; x < settings.hexColums; x++) {
+            let hex = gr.get([x,y]);
+            if (hex.biome === "Water") continue;
+            if (hex.archetype === "Flat") continue;
+            if (hex.moisture < 0.70 && hex.archetype !== "Mountain impassable") continue;
+
+            hex.source = false;
+            if (hex.archetype === "Hill" && (Math.floor(Math.random() * 45) + 1) === 10) {
+                hex.source = true;
+            } else if (hex.archetype === "Mountain" && (Math.floor(Math.random() * 10) + 1) === 10) {
+                hex.source = true;
+            } else if ((Math.floor(Math.random() * 5) + 1) === 3) { // Mountain impassable
+                hex.source = true;
+            }
+            if (!hex.source) continue;
+
+            let hexesInRange = gr.neighborsOf(hex);
+            for (let i = 0; i < hexesInRange.length; i++) {
+                let hexToCheck = hexesInRange[i];
+                if (!hexToCheck) continue;
+                if (hexToCheck.biome === "Water" || hexToCheck.source === true) {
+                    hex.source = false;
+                    break;
+                }
+
+            }
+            if (!hex.source) continue;
+            // Elegir vecinos más humedos y que estén en el mismo archetipo o inferior y que no sea del mismo source.
+            // al elegir source hay que crear un identificador, y meterlo en todos lo hex del rio para que no se haga un lazo
+
+
+            hex.river = "SOURCE";
+            let tileCoords = riverTileset[hex.river];
+            if (!tileCoords) continue;
+            textureRivers.frame = new PIXI.Rectangle(tileCoords.x*32, tileCoords.y*48, 32, 48);
+            let riverSource = new PIXI.Sprite(new PIXI.Texture(textureRivers.baseTexture, textureRivers.frame));
+            if (x%2 === 1) {
+                riverSource.x = x * 24;
+                riverSource.y = -4 + (y * 28);
+            } else {
+                riverSource.x = x * 24;
+                riverSource.y = -18 + (y * 28);
+            }
+            viewport.addChild(riverSource);
+        }
+    }
+
 
     function onClick (event) {
         const hexCoordinates = Grid.pointToHex(event.world.x, event.world.y);
