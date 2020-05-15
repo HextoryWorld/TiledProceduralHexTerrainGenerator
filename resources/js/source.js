@@ -561,17 +561,20 @@ function loadGrid(app, viewport, settings) {
                 hex.sideRiverExit = i;
                 hex.riverEnd = true;
                 hexDestination = null;
+                hex.river = null;
                 break;
-            }
-
-            if (hex.river === 'SOURCE') {
-                hexToCheck.sourceSon = true;
             }
 
             // Different riverId to avoid cicles.
             if (hexToCheck.riverId === hex.riverId) continue;
+            if (hexToCheck.riverId && hex.source === true) continue;
             // No Volcano cross
             if (hexToCheck.tile === "Volcano") continue;
+            //No go north or south impassable
+            if (i === 4  && biomeTileset[hex.tile].z === 5) continue;
+            if (i === 1 && biomeTileset[hexToCheck.tile].z === 5 && biomeTileset[hex.tile].z === 5) continue;
+            if (hexToCheck.x === settings.hexColums ) continue;
+            if (hexToCheck.y === settings.hexRows ) continue;
 
             if (!hexDestination) {
                 hexDestination = hexToCheck;
@@ -581,12 +584,18 @@ function loadGrid(app, viewport, settings) {
                 hexDestination = hexToCheck;
             }
             // For the same archetype choose more moisture
-            else if (biomeTileset[hexToCheck.tile].z === biomeTileset[hexDestination.tile].z && hexToCheck.moisture > hexDestination.moisture) {
+            else if (hex.source === true && biomeTileset[hexToCheck.tile].z === biomeTileset[hexDestination.tile].z && hexToCheck.moisture > hexDestination.moisture) {
+                hexDestination = hexToCheck;
+            } else if (hex.source !== true && biomeTileset[hexToCheck.tile].z === biomeTileset[hexDestination.tile].z && hexToCheck.elevation < hexDestination.elevation) {
                 hexDestination = hexToCheck;
             }
         }
 
         if (hexDestination) {
+
+            if (hex.source === true) {
+                hexDestination.sourceSon = true;
+            }
 
             if (biomeTileset[hex.tile].z < biomeTileset[hexDestination.tile].z) {
                 // Dibujamos lago
@@ -596,8 +605,10 @@ function loadGrid(app, viewport, settings) {
                 let indexHex = hexesInRange.indexOf(hexDestination);
                 hex.sideRiverExit = indexHex;
                 hexDestination.sideRiverEnter = indexHex > 2 ? indexHex - 3 : indexHex + 3;
-                if (hexDestination.tile === "ShallowWater" || hexDestination.tile === "DeepWater" || hexDestination.tile.includes('lake')) {
+                if (hexDestination.tile === "ShallowWater" || hexDestination.tile === "DeepWater" || hexDestination.tile.includes('lake') && hexDestination.archetype !== 'flat') {
                     hexDestination.riverEnd = true;
+                } else if (hexDestination.tile.includes('lake') && hexDestination.archetype === 'flat') {
+                    //nada
                 } else if (hexDestination.riverId) {
                     // Si es un source, hay que dibujar tambien el hexagono del source --> hexDestination.
                     hex.riverEnd = true;
@@ -612,6 +623,7 @@ function loadGrid(app, viewport, settings) {
         if (hex.riverJoin === true) {
             console.log('dibujarmos conexion')
             console.log(hex);
+            drawRiverTile(hex);
             return;
         } else if (hex.redrawAsLake && !hex.sourceSon) {
             console.log('dibujarmos lago')
@@ -637,7 +649,6 @@ function loadGrid(app, viewport, settings) {
         if (typeof hex.sideRiverEnter !== 'undefined' && typeof hex.sideRiverExit !== 'undefined') river = hex.sideRiverEnter + '' + hex.sideRiverExit;
         let tileCoords = riverTileset[river];
         if (!tileCoords) return;
-        let rotation = (typeof tileCoords.rotation !== 'undefined') ? tileCoords.rotation : null;
 
         textureRivers.frame = new PIXI.Rectangle(tileCoords.x*32, tileCoords.y*48, 32, 48);
         let riverSource = new PIXI.Sprite(new PIXI.Texture(textureRivers.baseTexture, textureRivers.frame));
@@ -648,18 +659,6 @@ function loadGrid(app, viewport, settings) {
         } else {
             riverSource.x = hex.x * 24;
             riverSource.y = -18 + (hex.y * 28);
-        }
-
-        if (rotation !== null) {
-            riverSource.x = riverSource.x + 16;
-            riverSource.y = riverSource.y + 34;
-            if (tileCoords.offset) {
-                riverSource.x = riverSource.x + tileCoords.offset.x;
-                riverSource.y = riverSource.y + tileCoords.offset.y;
-            }
-            riverSource.pivot.x = 16;
-            riverSource.pivot.y = 34;
-            riverSource.rotation = rotation;
         }
 
         viewport.addChild(riverSource);
