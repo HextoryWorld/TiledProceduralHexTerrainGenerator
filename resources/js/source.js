@@ -147,9 +147,9 @@ function getDefaultSettings() {
         hexSize: 16,
         hexOrientation: 'flat',
         //hexColums: colums, // x
-        hexColums: 20, // x
+        hexColums: 10, // x
         //hexRows:  rows, // y
-        hexRows:  20, // y
+        hexRows:  10, // y
         lineThickness: 1,
         lineColor: 0x999999,
         hideCoords: true,
@@ -416,7 +416,7 @@ function loadGrid(app, viewport, settings) {
                     counter++;
                 }
             }
-            if (terrainSorrounded && counter < 2 ) {
+            if (terrainSorrounded && counter < 1 ) {
                 if (counter === 0) hex.tile = lookup() <= 50 ? "lake2": "lake1";
                 else if (counter === 1) hex.tile = lookup() <= 50 ? "lake4": "lake3";
             }
@@ -491,7 +491,7 @@ function loadGrid(app, viewport, settings) {
     let riverSources = [];
     gr.forEach(hex => {
         if (hex.biome === "Water" || hex.tile === "Volcano" || hex.archetype === "Flat") return;
-        if (hex.moisture < 0.70 && hex.archetype !== "Mountain impassable" && hex.biome !== 'Alpine forest') return;
+        if (hex.moisture < 0.60 && hex.archetype !== "Mountain impassable" && hex.biome !== 'Alpine forest') return;
 
         hex.source = false;
         if (hex.archetype === "Hill" && lookup() <= 6) {
@@ -557,7 +557,13 @@ function loadGrid(app, viewport, settings) {
         for (let i = 0; i < hexesInRange.length; i++) {
             let hexToCheck = hexesInRange[i];
 
-            if (typeof hexToCheck === 'undefined') {
+            if (typeof hexToCheck !== 'undefined' && (hexToCheck.tile === "ShallowWater" || hexToCheck.tile === "DeepWater" || hexToCheck.tile.includes('lake'))) {
+                hex.sideRiverExit = i;
+                hex.riverEnd = true;
+                hexDestination = null;
+                hex.river = null;
+                break;
+            } else if (typeof hexToCheck === 'undefined') {
                 hex.sideRiverExit = i;
                 hex.riverEnd = true;
                 hexDestination = null;
@@ -573,8 +579,8 @@ function loadGrid(app, viewport, settings) {
             //No go north or south impassable
             if (i === 4  && biomeTileset[hex.tile].z === 5) continue;
             if (i === 1 && biomeTileset[hexToCheck.tile].z === 5 && biomeTileset[hex.tile].z === 5) continue;
-            if (hexToCheck.x === settings.hexColums ) continue;
-            if (hexToCheck.y === settings.hexRows ) continue;
+            if (hexToCheck.x === settings.hexColums - 1 && hex.source === true) continue;
+            if (hexToCheck.y === settings.hexRows - 1 && hex.source === true) continue;
 
             if (!hexDestination) {
                 hexDestination = hexToCheck;
@@ -583,7 +589,7 @@ function loadGrid(app, viewport, settings) {
             else if (biomeTileset[hexToCheck.tile].z < biomeTileset[hexDestination.tile].z) {
                 hexDestination = hexToCheck;
             }
-            // For the same archetype choose more moisture
+            // The source runs to the most moisture hex.
             else if (hex.source === true && biomeTileset[hexToCheck.tile].z === biomeTileset[hexDestination.tile].z && hexToCheck.moisture > hexDestination.moisture) {
                 hexDestination = hexToCheck;
             } else if (hex.source !== true && biomeTileset[hexToCheck.tile].z === biomeTileset[hexDestination.tile].z && hexToCheck.elevation < hexDestination.elevation) {
@@ -597,6 +603,7 @@ function loadGrid(app, viewport, settings) {
                 hexDestination.sourceSon = true;
             }
 
+            /*
             if (biomeTileset[hex.tile].z < biomeTileset[hexDestination.tile].z) {
                 // Dibujamos lago
                 hex.redrawAsLake = true;
@@ -617,16 +624,33 @@ function loadGrid(app, viewport, settings) {
                 } else {
                     hexDestination.riverId = hex.riverId;
                 }
+            }*/
+
+            let indexHex = hexesInRange.indexOf(hexDestination);
+            hex.sideRiverExit = indexHex;
+            hexDestination.sideRiverEnter = indexHex > 2 ? indexHex - 3 : indexHex + 3;
+            if (hexDestination.tile === "ShallowWater" || hexDestination.tile === "DeepWater" || hexDestination.tile.includes('lake') && hexDestination.archetype !== 'flat') {
+                hexDestination.riverEnd = true;
+            } else if (hexDestination.tile.includes('lake') && hexDestination.archetype === 'flat') {
+                //nada
+            } else if (hexDestination.riverId && hex.riverId !== hexDestination.riverId) {
+                // Si es un source, hay que dibujar tambien el hexagono del source --> hexDestination.
+                hex.riverEnd = true;
+                hex.riverJoin = true;
+                // Hay que dibujar una conexión entre ríos
+            } else {
+                hexDestination.riverId = hex.riverId;
             }
+
         }
 
         if (hex.riverJoin === true) {
-            console.log('dibujarmos conexion')
+            console.log('dibujamos conexion')
             console.log(hex);
             drawRiverTile(hex);
             return;
         } else if (hex.redrawAsLake && !hex.sourceSon) {
-            console.log('dibujarmos lago')
+            console.log('dibujamos lago')
             console.log(hex);
             drawLakeTile(hex);
             return;
