@@ -147,9 +147,9 @@ function getDefaultSettings() {
         hexSize: 16,
         hexOrientation: 'flat',
         //hexColums: colums, // x
-        hexColums: 10, // x
+        hexColums: 40, // x
         //hexRows:  rows, // y
-        hexRows:  10, // y
+        hexRows:  20, // y
         lineThickness: 1,
         lineColor: 0x999999,
         hideCoords: true,
@@ -525,7 +525,7 @@ function loadGrid(app, viewport, settings) {
         console.log('----------- Start River -----------');
 
         // --- start delete
-        let tileCoords = riverTileset[hex.river];
+        /*let tileCoords = riverTileset[hex.river];
         if (!tileCoords) return;
         textureRivers.frame = new PIXI.Rectangle(tileCoords.x*32, tileCoords.y*48, 32, 48);
         let riverSource = new PIXI.Sprite(new PIXI.Texture(textureRivers.baseTexture, textureRivers.frame));
@@ -537,7 +537,7 @@ function loadGrid(app, viewport, settings) {
             riverSource.y = -18 + (hex.y * 28);
         }
 
-        viewport.addChild(riverSource);
+        viewport.addChild(riverSource);*/
 
         //  --- end delete
 
@@ -573,7 +573,7 @@ function loadGrid(app, viewport, settings) {
 
             // Different riverId to avoid cicles.
             if (hexToCheck.riverId === hex.riverId) continue;
-            if (hexToCheck.riverId && hex.source === true) continue;
+            if (hexToCheck.riverId && hexToCheck.source === true) continue;
             // No Volcano cross
             if (hexToCheck.tile === "Volcano") continue;
             //No go north or south impassable
@@ -633,9 +633,8 @@ function loadGrid(app, viewport, settings) {
                 hexDestination.riverEnd = true;
             } else if (hexDestination.tile.includes('lake') && hexDestination.archetype === 'flat') {
                 //nada
-            } else if (hexDestination.riverId && hex.riverId !== hexDestination.riverId) {
-                // Si es un source, hay que dibujar tambien el hexagono del source --> hexDestination.
-                hex.riverEnd = true;
+            } else if (hexDestination.riverId && hex.riverId !== hexDestination.riverId && hexDestination.source !== true) {
+                // Si es un source, lo esquivamos.
                 hex.riverJoin = true;
                 // Hay que dibujar una conexión entre ríos
             } else {
@@ -645,9 +644,11 @@ function loadGrid(app, viewport, settings) {
         }
 
         if (hex.riverJoin === true) {
-            console.log('dibujamos conexion')
-            console.log(hex);
+            console.log('dibujamos previo conexion');
             drawRiverTile(hex);
+            //hexDestination.sideRiverEnter = hex.sideRiverExit;
+            console.log('dibujamos conexion');
+            drawRiverTile(hexDestination);
             return;
         } else if (hex.redrawAsLake && !hex.sourceSon) {
             console.log('dibujamos lago')
@@ -669,8 +670,9 @@ function loadGrid(app, viewport, settings) {
     }
 
     function drawRiverTile(hex) {
-        let river = 'SOURCE';
+        let river = null;
         if (typeof hex.sideRiverEnter !== 'undefined' && typeof hex.sideRiverExit !== 'undefined') river = hex.sideRiverEnter + '' + hex.sideRiverExit;
+        if (!river) return;
         let tileCoords = riverTileset[river];
         if (!tileCoords) return;
 
