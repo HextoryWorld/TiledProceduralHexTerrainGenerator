@@ -26,6 +26,8 @@ Check the original for full list of features and references.
 
 ![Long river](https://josemanuelperezsevilla.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-long_river.png)
 
+![Long river](https://josemanuelperezsevilla.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-mediterranean.png)
+
 ![Mostly Plain](https://josemanuelperezsevilla.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-mostly-plain.png)
 
 ![Island](https://josemanuelperezsevilla.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-island.png)
