@@ -10,49 +10,12 @@ function lookup() {
 
 window.onload = function() {
 
-
-
     let loader = new PIXI.Loader();
     loader.add('resources/img/tileset.png')
         .add('resources/img/tileset-borderless.png')
         .add('resources/img/roads_rivers-tileset.png')
         .load(drawMap);
-        //.load(testRotation);
 };
-
-function testRotation() {
-    let canvas = document.getElementById("canvas");
-    let app = new PIXI.Application({ width: 200, height: 200, transparent: true, preserveDrawingBuffer:true, view: canvas });
-
-    let textureHex = PIXI.utils.TextureCache['resources/img/tileset.png'];
-    textureHex.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-
-    textureHex.frame = new PIXI.Rectangle(0, 0, 32, 48);
-    let tile = new PIXI.Sprite(new PIXI.Texture(textureHex.baseTexture, textureHex.frame));
-
-    tile.x = 50;
-    tile.y = 50;
-
-    app.stage.addChild(tile);
-
-
-    let textureRivers = PIXI.utils.TextureCache['resources/img/roads_rivers-tileset.png'];
-    textureRivers.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-
-    textureRivers.frame = new PIXI.Rectangle(5*32, 2*48, 32, 48);
-    let riverSource = new PIXI.Sprite(new PIXI.Texture(textureRivers.baseTexture, textureRivers.frame));
-
-    riverSource.x = 50+16;
-    riverSource.y = 50+34-2;
-
-    riverSource.pivot.x = 16;
-    riverSource.pivot.y = 34;
-    riverSource.rotation = 2;
-    app.stage.addChild(riverSource);
-
-
-}
-
 
 function drawMap() {
 
@@ -146,10 +109,10 @@ function getDefaultSettings() {
         screenH: height,
         hexSize: 16,
         hexOrientation: 'flat',
-        //hexColums: colums, // x
-        hexColums: 40, // x
-        //hexRows:  rows, // y
-        hexRows:  20, // y
+        hexColums: colums, // x
+        //hexColums: 40, // x
+        hexRows:  rows, // y
+        //hexRows:  20, // y
         lineThickness: 1,
         lineColor: 0x999999,
         hideCoords: true,
@@ -248,7 +211,6 @@ function initializeViewport(app, settings) {
 
 function loadGrid(app, viewport, settings) {
     if (!$('#setMapHash').is(":checked")) $('#mapHash').val(btoa(JSON.stringify(settings)));
-    //let Hex = Honeycomb.extendHex({ size: settings.hexSize,  orientation: settings.hexOrientation });
     let Hex = Honeycomb.extendHex({ size: {width: 32, height: 28},  orientation: settings.hexOrientation });
     let Grid = Honeycomb.defineGrid(Hex);
     let elevation = heightMap(settings);
@@ -416,7 +378,9 @@ function loadGrid(app, viewport, settings) {
                     counter++;
                 }
             }
-            if (terrainSorrounded && counter < 1 ) {
+            if (terrainSorrounded && counter < 2 ) {
+            //if (terrainSorrounded && counter < 1) {
+                //hex.tile = lookup() <= 50 ? "lake2": "lake3";
                 if (counter === 0) hex.tile = lookup() <= 50 ? "lake2": "lake1";
                 else if (counter === 1) hex.tile = lookup() <= 50 ? "lake4": "lake3";
             }
@@ -522,8 +486,8 @@ function loadGrid(app, viewport, settings) {
     riverSources.forEach(hex => {
         hex.river = "SOURCE";
         hex.riverEnd = false;
-        console.log('----------- Start River -----------');
 
+        // DRAW river sources
         // --- start delete
         /*let tileCoords = riverTileset[hex.river];
         if (!tileCoords) return;
@@ -541,14 +505,13 @@ function loadGrid(app, viewport, settings) {
 
         //  --- end delete
 
-        console.log(hex);
         drawRiver(hex);
     });
 
     function drawRiver(hex) {
 
         if (hex.riverEnd === true) {
-            console.log('----------- End River -----------');
+            //console.log('----------- End River -----------');
             return;
         }
 
@@ -603,29 +566,6 @@ function loadGrid(app, viewport, settings) {
                 hexDestination.sourceSon = true;
             }
 
-            /*
-            if (biomeTileset[hex.tile].z < biomeTileset[hexDestination.tile].z) {
-                // Dibujamos lago
-                hex.redrawAsLake = true;
-                hex.riverEnd = true;
-            } else {
-                let indexHex = hexesInRange.indexOf(hexDestination);
-                hex.sideRiverExit = indexHex;
-                hexDestination.sideRiverEnter = indexHex > 2 ? indexHex - 3 : indexHex + 3;
-                if (hexDestination.tile === "ShallowWater" || hexDestination.tile === "DeepWater" || hexDestination.tile.includes('lake') && hexDestination.archetype !== 'flat') {
-                    hexDestination.riverEnd = true;
-                } else if (hexDestination.tile.includes('lake') && hexDestination.archetype === 'flat') {
-                    //nada
-                } else if (hexDestination.riverId) {
-                    // Si es un source, hay que dibujar tambien el hexagono del source --> hexDestination.
-                    hex.riverEnd = true;
-                    hex.riverJoin = true;
-                    // Hay que dibujar una conexión entre ríos
-                } else {
-                    hexDestination.riverId = hex.riverId;
-                }
-            }*/
-
             let indexHex = hexesInRange.indexOf(hexDestination);
             hex.sideRiverExit = indexHex;
             hexDestination.sideRiverEnter = indexHex > 2 ? indexHex - 3 : indexHex + 3;
@@ -634,9 +574,7 @@ function loadGrid(app, viewport, settings) {
             } else if (hexDestination.tile.includes('lake') && hexDestination.archetype === 'flat') {
                 //nada
             } else if (hexDestination.riverId && hex.riverId !== hexDestination.riverId && hexDestination.source !== true) {
-                // Si es un source, lo esquivamos.
                 hex.riverJoin = true;
-                // Hay que dibujar una conexión entre ríos
             } else {
                 hexDestination.riverId = hex.riverId;
             }
@@ -644,25 +582,14 @@ function loadGrid(app, viewport, settings) {
         }
 
         if (hex.riverJoin === true) {
-            console.log('dibujamos previo conexion');
             drawRiverTile(hex);
-            //hexDestination.sideRiverEnter = hex.sideRiverExit;
-            console.log('dibujamos conexion');
             drawRiverTile(hexDestination);
             return;
-        } else if (hex.redrawAsLake && !hex.sourceSon) {
-            console.log('dibujamos lago')
-            console.log(hex);
-            drawLakeTile(hex);
-            return;
         } else if (hex.sourceSon === true && hex.riverEnd === true) {
-            console.log('no dibujamos rios de extensión 1')
-            console.log(hex);
+            // don't draw rivers of 1 hex length
             return;
         }
         else if (hex.river !== "SOURCE" && !(hex.sourceSon === true && hex.riverEnd === true)) {
-            // Draw
-            console.log(hex);
             drawRiverTile(hex);
         }
 
@@ -688,10 +615,6 @@ function loadGrid(app, viewport, settings) {
         }
 
         viewport.addChild(riverSource);
-    }
-
-    function drawLakeTile(hex) {
-        return;
     }
 
     function onClick (event) {
