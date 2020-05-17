@@ -15,7 +15,7 @@ You can see the generator working at the [Demo Page](https://josemanuelperezsevi
 ### Features
 Check the original for full list of features and references.
 
- - Rivers. Random generation of the river's sources.
+ - Rivers. Code for generation of the river's sources.
  - I've added this [code to generate random numbers in advance](https://stackoverflow.com/a/8776048). 
  - Fixed hexSize to adapt to the tileset size art.
  - Applied tiles for every biome (elevation / moisture).
