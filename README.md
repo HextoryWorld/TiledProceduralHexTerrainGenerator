@@ -2,7 +2,7 @@
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/JoseManuelPerezSevilla/TiledProceduralHexTerrainGenerator/blob/master/LICENSE)
 
-This license not applies to the graphic tiles, they are from [CuddlyClover](https://cuddlyclover.itch.io/)
+This license not applies to the graphic tiles, they are from [CuddlyClover](https://cuddlyclover.itch.io/): [Fantasy Hex Tiles](https://cuddlyclover.itch.io/fantasy-hex-tiles).
 
 This is a tiled version of this project: [HTML5 Procedural Hexagon Terrain Genenerator](https://github.com/JoseManuelPerezSevilla/ProceduralHexTerrainGenerator)
 
@@ -13,13 +13,13 @@ You can see the generator working at the [Demo Page](https://josemanuelperezsevi
 ![HTML5 Procedural Hexagon Terrain Generator](https://josemanuelperezsevilla.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-20x10.png)
 
 ### Features
-Check the original for full list of features and references.
+Check the original for the full list of features and references. This version added:
 
- - Rivers. Code for generation of the river's sources.
- - I've added this [code to generate random numbers in advance](https://stackoverflow.com/a/8776048). 
- - Fixed hexSize to adapt to the tileset size art.
  - Applied tiles for every biome (elevation / moisture).
- - Added some code to create lakes / swamps, Volcanoes and also lairs.
+ - Rivers. Code for generation of the river's sources.
+ - A [code to generate random numbers in advance](https://stackoverflow.com/a/8776048). 
+ - Fixed hexSize to adapt to the tileset size art.
+ - Code to generate lakes / swamps, volcanoes and also lairs.
 
 
 ### Some Maps
