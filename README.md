@@ -4,13 +4,13 @@
 
 This license not applies to the graphic tiles, they are from [CuddlyClover](https://cuddlyclover.itch.io/): [Fantasy Hex Tiles](https://cuddlyclover.itch.io/fantasy-hex-tiles).
 
-This is a tiled version of this project: [HTML5 Procedural Hexagon Terrain Genenerator](https://github.com/JoseManuelPerezSevilla/ProceduralHexTerrainGenerator)
+This is a tiled version of this project: [HTML5 Procedural Hexagon Terrain Genenerator](https://github.com/HextoryWorld/ProceduralHexTerrainGenerator)
 
 ## Demo
 
-You can see the generator working at the [Demo Page](https://josemanuelperezsevilla.github.io/TiledProceduralHexTerrainGenerator/).
+You can see the generator working at the [Demo Page](https://hextoryworld.github.io/TiledProceduralHexTerrainGenerator/).
 
-![HTML5 Procedural Hexagon Terrain Generator](https://josemanuelperezsevilla.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-20x10.png)
+![HTML5 Procedural Hexagon Terrain Generator](https://hextoryworld.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-20x10.png)
 
 ### Features
 Check the original for the full list of features and references. This version added:
@@ -24,14 +24,14 @@ Check the original for the full list of features and references. This version ad
 
 ### Some Maps
 
-![Long river](https://josemanuelperezsevilla.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-long_river.png)
+![Long river](https://hextoryworld.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-long_river.png)
 
-![Long river](https://josemanuelperezsevilla.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-mediterranean.png)
+![Long river](https://hextoryworld.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-mediterranean.png)
 
-![Mostly Plain](https://josemanuelperezsevilla.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-mostly-plain.png)
+![Mostly Plain](https://hextoryworld.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-mostly-plain.png)
 
-![Island](https://josemanuelperezsevilla.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-island.png)
+![Island](https://hextoryworld.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-island.png)
 
-![20x10](https://josemanuelperezsevilla.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-20x10.png)
+![20x10](https://hextoryworld.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-20x10.png)
 
-![Coordinates](https://josemanuelperezsevilla.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-20x10-coords.png)
+![Coordinates](https://hextoryworld.github.io/TiledProceduralHexTerrainGenerator/resources/img/screenshots/tgenerator-20x10-coords.png)
